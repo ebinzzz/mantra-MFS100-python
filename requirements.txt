@@ -1,9 +1,5 @@
-pip>=25.2
-setuptools>=68.0.0
-wheel
-build
-
-flask==2.3.3
-opencv-python==4.8.1.78
-numpy>=1.26.0
-requests==2.31.0
+Flask>=2.3.0
+opencv-python==4.10.0.84
+numpy<2
+Pillow>=10.0.0
+Werkzeug>=2.3.0
