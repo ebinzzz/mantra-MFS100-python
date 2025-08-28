@@ -12,7 +12,44 @@
         </div>
     </div>
 
-    <form method="POST" style="max-width: 500px; margin: 0 auto;">
+    <!-- Device Configuration Section -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <h3 style="color: #4f46e5; margin-bottom: 1rem;">Scanner Configuration</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <label style="font-weight: bold; color: #4f46e5; margin-bottom: 0.5rem; display: block;">Device:</label>
+                <select id="cmbConnectedDvc" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                    <option value="-1">Select Device</option>
+                </select>
+            </div>
+            
+            <div>
+                <label style="font-weight: bold; color: #4f46e5; margin-bottom: 0.5rem; display: block;">Quality:</label>
+                <input type="text" id="txtQuality" value="70" maxlength="3" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+            
+            <div>
+                <label style="font-weight: bold; color: #4f46e5; margin-bottom: 0.5rem; display: block;">Timeout:</label>
+                <input type="text" id="txtTimeout" value="15" maxlength="5" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+            <button id="btnScanDevices" onclick="getConnectedDevices()" class="btn" style="background: #059669; border: none;">
+                🔍 Scan Devices
+            </button>
+            <button id="btnInitDevice" onclick="initializeDevice()" class="btn" style="background: #0891b2; border: none;">
+                🔧 Initialize
+            </button>
+            <button id="btnCheckDevice" onclick="checkDevice()" class="btn" style="background: #7c3aed; border: none;">
+                ✓ Check Status
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Verification Section -->
+    <div style="max-width: 500px; margin: 0 auto;">
         <div style="text-align: center; margin-bottom: 2rem;">
             <div style="font-size: 4rem; margin-bottom: 1rem;">🔍</div>
             <h3 style="color: #4f46e5; margin-bottom: 1rem;">Identity Verification</h3>
@@ -22,11 +59,26 @@
         <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 1rem; border-radius: 8px; margin: 1.5rem 0;">
             <h4 style="color: #065f46; margin-bottom: 0.5rem;">Verification Process:</h4>
             <ul style="color: #065f46; font-size: 0.9rem; margin: 0; padding-left: 1.5rem;">
-                <li>System will compare against all enrolled fingerprints</li>
+                <li>System will capture fingerprint using MFScan device</li>
+                <li>Compare against all enrolled fingerprints in database</li>
                 <li>Best matching user will be identified</li>
                 <li>Access granted if similarity score meets threshold</li>
                 <li>All attempts are logged for audit purposes</li>
             </ul>
+        </div>
+
+        <!-- Captured Fingerprint Display -->
+        <div style="margin: 1.5rem 0;">
+            <h4 style="color: #4f46e5; margin-bottom: 0.5rem;">Captured Fingerprint</h4>
+            <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center; min-height: 200px;">
+                <img id="capturedVerifyImage" style="max-width: 100%; max-height: 180px; border: 1px solid #d1d5db; border-radius: 4px;" alt="No fingerprint captured" />
+                <div id="verifyImageInfo" style="margin-top: 0.5rem; font-size: 12px; color: #6b7280;"></div>
+            </div>
+        </div>
+
+        <!-- Verification Result Display -->
+        <div id="verificationResult" style="margin: 1.5rem 0; padding: 1rem; border-radius: 8px; display: none;">
+            <div id="resultContent"></div>
         </div>
 
         <div class="loading" id="loadingIndicator">
@@ -37,10 +89,18 @@
             </p>
         </div>
 
-        <button type="submit" class="btn" style="width: 100%; font-size: 1.1rem;" id="verifyBtn">
+        <!-- Status Display -->
+        <div style="margin: 1.5rem 0;">
+            <label style="font-weight: bold; color: #4f46e5; margin-bottom: 0.5rem; display: block;">Status:</label>
+            <div id="verifyStatusDisplay" style="padding: 8px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; font-size: 12px; min-height: 40px;">
+                Ready for verification...
+            </div>
+        </div>
+
+        <button onclick="startVerification()" class="btn" style="width: 100%; font-size: 1.1rem;" id="verifyBtn">
             🔓 Start Verification Scan
         </button>
-    </form>
+    </div>
 </div>
 
 <div class="card">
@@ -50,6 +110,18 @@
         <div style="text-align: center; padding: 1rem; background: rgba(79, 70, 229, 0.05); border-radius: 12px;">
             <div style="font-size: 2rem; margin-bottom: 0.5rem;">🧠</div>
             <h4 style="color: #4f46e5; margin-bottom: 0.5rem;">AI Matching</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Advanced algorithms analyze ridge patterns and minutiae points</p>
+        </div>
+
+        <div style="text-align: center; padding: 1rem; background: rgba(16, 185, 129, 0.05); border-radius: 12px;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔒</div>
+            <h4 style="color: #10b981; margin-bottom: 0.5rem;">Secure Comparison</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Fingerprint data never leaves the local system</p>
+        </div>
+
+        <div style="text-align: center; padding: 1rem; background: rgba(245, 158, 11, 0.05); border-radius: 12px;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+            <h4 style="color: #f59e0b; margin-bottom: 0.5rem;">Quality Control</h4>
             <p style="color: #6b7280; font-size: 0.9rem;">Real-time image quality assessment and enhancement</p>
         </div>
 
@@ -69,51 +141,292 @@
     </p>
 </div>
 
+<script src="{{ url_for('static', filename='js/jquery-1.8.2.js') }}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const verifyBtn = document.getElementById('verifyBtn');
+// MFScan Integration Variables
+var uri = "https://localhost:8034/mfscan/";
+var isDeviceInitialized = false;
 
-    form.addEventListener('submit', function(e) {
-        // Show loading state
-        loadingIndicator.classList.add('show');
-        verifyBtn.disabled = true;
-        verifyBtn.textContent = 'Verifying...';
-        
-        // Add extended timeout warning
-        setTimeout(() => {
-            if (loadingIndicator.classList.contains('show')) {
-                const warning = document.createElement('p');
-                warning.style.color = '#f59e0b';
-                warning.style.marginTop = '1rem';
-                warning.style.fontSize = '0.9rem';
-                warning.textContent = 'Verification taking longer than expected. Please ensure finger is properly placed and scanner is connected.';
-                loadingIndicator.appendChild(warning);
+// Utility Functions
+function updateVerifyStatus(message, type = 'info') {
+    const statusDiv = document.getElementById('verifyStatusDisplay');
+    const timestamp = new Date().toLocaleTimeString();
+    const color = type === 'error' ? '#dc2626' : type === 'success' ? '#059669' : '#6b7280';
+    statusDiv.innerHTML = `<span style="color: ${color};">[${timestamp}] ${message}</span>`;
+}
+
+function disableVerifyButtons(disabled) {
+    const buttons = ['btnScanDevices', 'btnInitDevice', 'btnCheckDevice', 'verifyBtn'];
+    buttons.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.disabled = disabled;
+    });
+}
+
+function showVerificationResult(success, message, userInfo = null) {
+    const resultDiv = document.getElementById('verificationResult');
+    const resultContent = document.getElementById('resultContent');
+    
+    if (success) {
+        resultDiv.style.background = 'rgba(16, 185, 129, 0.1)';
+        resultDiv.style.borderLeft = '4px solid #10b981';
+        resultContent.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="font-size: 2rem;">✅</div>
+                <div>
+                    <h4 style="color: #065f46; margin: 0 0 0.5rem 0;">Access Granted</h4>
+                    <p style="color: #065f46; margin: 0;">${message}</p>
+                    ${userInfo ? `<p style="color: #6b7280; font-size: 0.9rem; margin: 0.5rem 0 0 0;">${userInfo}</p>` : ''}
+                </div>
+            </div>
+        `;
+    } else {
+        resultDiv.style.background = 'rgba(239, 68, 68, 0.1)';
+        resultDiv.style.borderLeft = '4px solid #ef4444';
+        resultContent.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="font-size: 2rem;">❌</div>
+                <div>
+                    <h4 style="color: #991b1b; margin: 0 0 0.5rem 0;">Access Denied</h4>
+                    <p style="color: #991b1b; margin: 0;">${message}</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    resultDiv.style.display = 'block';
+    
+    // Auto-hide result after 10 seconds
+    setTimeout(() => {
+        resultDiv.style.display = 'none';
+    }, 10000);
+}
+
+// MFScan API Functions
+function postMFScanClient(method, jsonData) {
+    return new Promise((resolve) => {
+        $.ajax({
+            type: "POST",
+            url: uri + method,
+            contentType: "application/json; charset=utf-8",
+            data: jsonData || '',
+            dataType: "json",
+            crossDomain: true,
+            timeout: 30000,
+            success: function(data) {
+                resolve({ success: true, data: data });
+            },
+            error: function(jqXHR) {
+                let errorMsg = "Service Unavailable";
+                if (jqXHR.status === 404) errorMsg = "Requested page not found";
+                else if (jqXHR.status === 500) errorMsg = "Internal Server Error";
+                resolve({ success: false, error: errorMsg });
             }
-        }, 15000);
+        });
     });
+}
 
-    // Reset form state
-    window.addEventListener('pageshow', function(e) {
-        if (e.persisted) {
-            loadingIndicator.classList.remove('show');
-            verifyBtn.disabled = false;
-            verifyBtn.textContent = '🔓 Start Verification Scan';
+// Device Management Functions (same as dashboard)
+async function getConnectedDevices() {
+    updateVerifyStatus("Scanning for connected devices...");
+    disableVerifyButtons(true);
+    
+    try {
+        const result = await postMFScanClient("connecteddevicelist");
+        
+        if (result.success && result.data.ErrorCode == "0") {
+            const devices = result.data.ErrorDescription;
+            const deviceSelect = document.getElementById('cmbConnectedDvc');
+            deviceSelect.innerHTML = '<option value="-1">Select Device</option>';
+            
+            if (devices && devices.includes(":")) {
+                const deviceList = devices.split(":")[1].split(",");
+                deviceList.forEach((device, index) => {
+                    if (device.trim()) {
+                        deviceSelect.innerHTML += `<option value="${index}">${device.trim()}</option>`;
+                    }
+                });
+                updateVerifyStatus(`Found ${deviceList.length} device(s)`, 'success');
+            } else {
+                updateVerifyStatus("No devices found", 'error');
+            }
+        } else {
+            updateVerifyStatus(`Error: ${result.data ? result.data.ErrorDescription : result.error}`, 'error');
         }
-    });
+    } catch (error) {
+        updateVerifyStatus(`Connection error: ${error.message}`, 'error');
+    }
+    
+    disableVerifyButtons(false);
+}
+
+async function initializeDevice() {
+    const deviceSelect = document.getElementById('cmbConnectedDvc');
+    
+    if (deviceSelect.value === "-1") {
+        updateVerifyStatus("Please select a device first", 'error');
+        return;
+    }
+    
+    const deviceName = deviceSelect.options[deviceSelect.selectedIndex].text;
+    updateVerifyStatus(`Initializing ${deviceName}...`);
+    disableVerifyButtons(true);
+    
+    try {
+        const requestData = JSON.stringify({
+            "ConnectedDvc": deviceName,
+            "ClientKey": ""
+        });
+        
+        const result = await postMFScanClient("initdevice", requestData);
+        
+        if (result.success && result.data.ErrorCode == "0") {
+            isDeviceInitialized = true;
+            updateVerifyStatus("Device initialized successfully", 'success');
+        } else {
+            isDeviceInitialized = false;
+            updateVerifyStatus(`Initialization failed: ${result.data ? result.data.ErrorDescription : result.error}`, 'error');
+        }
+    } catch (error) {
+        updateVerifyStatus(`Initialization error: ${error.message}`, 'error');
+    }
+    
+    disableVerifyButtons(false);
+}
+
+async function checkDevice() {
+    const deviceSelect = document.getElementById('cmbConnectedDvc');
+    
+    if (deviceSelect.value === "-1") {
+        updateVerifyStatus("Please select a device first", 'error');
+        return;
+    }
+    
+    const deviceName = deviceSelect.options[deviceSelect.selectedIndex].text;
+    updateVerifyStatus(`Checking ${deviceName}...`);
+    
+    try {
+        const requestData = JSON.stringify({"ConnectedDvc": deviceName});
+        const result = await postMFScanClient("checkdevice", requestData);
+        
+        if (result.success && result.data.ErrorCode == "0") {
+            updateVerifyStatus("Device is connected and responding", 'success');
+        } else {
+            updateVerifyStatus(`Device check failed: ${result.data ? result.data.ErrorDescription : result.error}`, 'error');
+        }
+    } catch (error) {
+        updateVerifyStatus(`Check error: ${error.message}`, 'error');
+    }
+}
+
+// Main Verification Function
+async function startVerification() {
+    if (!isDeviceInitialized) {
+        updateVerifyStatus("Please initialize the device first", 'error');
+        showVerificationResult(false, "Device not initialized. Please scan and initialize a device first.");
+        return;
+    }
+    
+    const quality = document.getElementById('txtQuality').value;
+    const timeout = document.getElementById('txtTimeout').value;
+    
+    if (!quality || quality < 1 || quality > 100) {
+        updateVerifyStatus("Please enter a valid quality value (1-100)", 'error');
+        return;
+    }
+    
+    if (!timeout || timeout < 10) {
+        updateVerifyStatus("Please enter a valid timeout value (≥10 seconds)", 'error');
+        return;
+    }
+    
+    // Show loading state
+    document.getElementById('loadingIndicator').classList.add('show');
+    document.getElementById('verificationResult').style.display = 'none';
+    disableVerifyButtons(true);
+    
+    updateVerifyStatus("Capturing fingerprint... Please place finger on scanner");
+    
+    try {
+        // Step 1: Capture fingerprint
+        const requestData = JSON.stringify({
+            "Quality": quality,
+            "TimeOut": timeout
+        });
+        
+        const result = await postMFScanClient("capture", requestData);
+        
+        if (result.success && result.data.ErrorCode == "0") {
+            const imageData = result.data.BitmapData;
+            const imageElement = document.getElementById('capturedVerifyImage');
+            const infoElement = document.getElementById('verifyImageInfo');
+            
+            imageElement.src = "data:image/bmp;base64," + imageData;
+            infoElement.textContent = `Quality: ${result.data.Quality}, NFIQ: ${result.data.Nfiq}`;
+            
+            updateVerifyStatus("Fingerprint captured, comparing with database...", 'success');
+            
+            // Step 2: Send captured fingerprint to backend for verification
+            await verifyWithBackend(imageData, result.data.Quality);
+            
+        } else {
+            updateVerifyStatus(`Capture failed: ${result.data ? result.data.ErrorDescription : result.error}`, 'error');
+            showVerificationResult(false, `Fingerprint capture failed: ${result.data ? result.data.ErrorDescription : result.error}`);
+        }
+    } catch (error) {
+        updateVerifyStatus(`Capture error: ${error.message}`, 'error');
+        showVerificationResult(false, `Scanner communication error: ${error.message}`);
+    }
+    
+    // Hide loading state
+    document.getElementById('loadingIndicator').classList.remove('show');
+    disableVerifyButtons(false);
+}
+
+async function verifyWithBackend(bitmapData, quality) {
+    try {
+        updateVerifyStatus("Comparing fingerprint against enrolled users...");
+        
+        const response = await fetch('/api/verify_fingerprint', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                bitmap_data: bitmapData,
+                quality: quality
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            updateVerifyStatus(`Verification successful: ${result.user_id}`, 'success');
+            showVerificationResult(
+                true, 
+                `Welcome, ${result.user_id}!`, 
+                `Similarity Score: ${result.score.toFixed(4)} | Finger: ${result.finger_position || 'Unknown'}`
+            );
+        } else {
+            updateVerifyStatus(`Verification failed: ${result.message}`, 'error');
+            showVerificationResult(false, result.message);
+        }
+    } catch (error) {
+        updateVerifyStatus(`Backend communication error: ${error.message}`, 'error');
+        showVerificationResult(false, `System error during verification: ${error.message}`);
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateVerifyStatus("Ready - Please scan and initialize device");
+    
+    // Auto-scan for devices on load
+    setTimeout(getConnectedDevices, 1000);
+    
+    // Update connection status
+    document.getElementById('connectionStatus').textContent = "MFScan Service Connected";
+    document.getElementById('connectionStatus').style.color = "#059669";
 });
 </script>
-{% endblock %}: 0.9rem;">Advanced algorithms analyze ridge patterns and minutiae points</p>
-        </div>
-
-        <div style="text-align: center; padding: 1rem; background: rgba(16, 185, 129, 0.05); border-radius: 12px;">
-            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔒</div>
-            <h4 style="color: #10b981; margin-bottom: 0.5rem;">Secure Comparison</h4>
-            <p style="color: #6b7280; font-size: 0.9rem;">Fingerprint data never leaves the local system</p>
-        </div>
-
-        <div style="text-align: center; padding: 1rem; background: rgba(245, 158, 11, 0.05); border-radius: 12px;">
-            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
-            <h4 style="color: #f59e0b; margin-bottom: 0.5rem;">Quality Control</h4>
-            <p style="color: #6b7280; font-size
+{% endblock %}
