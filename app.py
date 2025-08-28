@@ -18,6 +18,7 @@ warnings.filterwarnings('ignore', category=InsecureRequestWarning)
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this in production
 
+
 class FingerprintManager:
     def __init__(self, base_url="https://localhost:8034/mfscan/", db_path="fingerprints.db"):
         self.base_url = base_url
