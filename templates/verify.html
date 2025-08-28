@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Verify User - Fingerprint Management System{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="card-title">User Verification</h1>
+    
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <div class="connection-status" id="connectionStatus">
+            Checking scanner status...
+        </div>
+    </div>
+
+    <form method="POST" style="max-width: 500px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🔍</div>
+            <h3 style="color: #4f46e5; margin-bottom: 1rem;">Identity Verification</h3>
+            <p style="color: #6b7280;">Place your finger on the scanner to authenticate</p>
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 1rem; border-radius: 8px; margin: 1.5rem 0;">
+            <h4 style="color: #065f46; margin-bottom: 0.5rem;">Verification Process:</h4>
+            <ul style="color: #065f46; font-size: 0.9rem; margin: 0; padding-left: 1.5rem;">
+                <li>System will compare against all enrolled fingerprints</li>
+                <li>Best matching user will be identified</li>
+                <li>Access granted if similarity score meets threshold</li>
+                <li>All attempts are logged for audit purposes</li>
+            </ul>
+        </div>
+
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p>Scanning fingerprint and matching against database...</p>
+            <p style="font-size: 0.9rem; color: #6b7280; margin-top: 1rem;">
+                This may take a few moments while we compare your fingerprint
+            </p>
+        </div>
+
+        <button type="submit" class="btn" style="width: 100%; font-size: 1.1rem;" id="verifyBtn">
+            🔓 Start Verification Scan
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <h2 class="card-title">Verification Security</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        
+        <div style="text-align: center; padding: 1rem; background: rgba(79, 70, 229, 0.05); border-radius: 12px;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🧠</div>
+            <h4 style="color: #4f46e5; margin-bottom: 0.5rem;">AI Matching</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Real-time image quality assessment and enhancement</p>
+        </div>
+
+        <div style="text-align: center; padding: 1rem; background: rgba(239, 68, 68, 0.05); border-radius: 12px;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📝</div>
+            <h4 style="color: #ef4444; margin-bottom: 0.5rem;">Audit Trail</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">All verification attempts are logged with timestamps</p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="card-title">Recent Activity</h2>
+    <p style="text-align: center; color: #6b7280;">
+        Check the <a href="/statistics" style="color: #4f46e5; text-decoration: none;">Statistics page</a> 
+        to view recent verification attempts and system performance.
+    </p>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const verifyBtn = document.getElementById('verifyBtn');
+
+    form.addEventListener('submit', function(e) {
+        // Show loading state
+        loadingIndicator.classList.add('show');
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Verifying...';
+        
+        // Add extended timeout warning
+        setTimeout(() => {
+            if (loadingIndicator.classList.contains('show')) {
+                const warning = document.createElement('p');
+                warning.style.color = '#f59e0b';
+                warning.style.marginTop = '1rem';
+                warning.style.fontSize = '0.9rem';
+                warning.textContent = 'Verification taking longer than expected. Please ensure finger is properly placed and scanner is connected.';
+                loadingIndicator.appendChild(warning);
+            }
+        }, 15000);
+    });
+
+    // Reset form state
+    window.addEventListener('pageshow', function(e) {
+        if (e.persisted) {
+            loadingIndicator.classList.remove('show');
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = '🔓 Start Verification Scan';
+        }
+    });
+});
+</script>
+{% endblock %}: 0.9rem;">Advanced algorithms analyze ridge patterns and minutiae points</p>
+        </div>
+
+        <div style="text-align: center; padding: 1rem; background: rgba(16, 185, 129, 0.05); border-radius: 12px;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔒</div>
+            <h4 style="color: #10b981; margin-bottom: 0.5rem;">Secure Comparison</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Fingerprint data never leaves the local system</p>
+        </div>
+
+        <div style="text-align: center; padding: 1rem; background: rgba(245, 158, 11, 0.05); border-radius: 12px;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+            <h4 style="color: #f59e0b; margin-bottom: 0.5rem;">Quality Control</h4>
+            <p style="color: #6b7280; font-size

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Enroll User - Fingerprint Management System{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="card-title">Enroll New User</h1>
+    
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <div class="connection-status" id="connectionStatus">
+            Checking scanner status...
+        </div>
+    </div>
+
+    <form method="POST" style="max-width: 500px; margin: 0 auto;">
+        <div class="form-group">
+            <label for="user_id" class="form-label">User ID *</label>
+            <input type="text" 
+                   id="user_id" 
+                   name="user_id" 
+                   class="form-input" 
+                   placeholder="Enter unique user identifier"
+                   required>
+            <small style="color: #6b7280; font-size: 0.875rem;">Must be unique for each user</small>
+        </div>
+
+        <div class="form-group">
+            <label for="finger_position" class="form-label">Finger Position *</label>
+            <select id="finger_position" name="finger_position" class="form-select" required>
+                <option value="">Select finger position</option>
+                <option value="thumb">Thumb</option>
+                <option value="index">Index Finger</option>
+                <option value="middle">Middle Finger</option>
+                <option value="ring">Ring Finger</option>
+                <option value="pinky">Pinky</option>
+                <option value="unknown">Unknown/Any</option>
+            </select>
+        </div>
+
+        <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 1rem; border-radius: 8px; margin: 1.5rem 0;">
+            <h4 style="color: #1e40af; margin-bottom: 0.5rem;">Enrollment Instructions:</h4>
+            <ul style="color: #1e40af; font-size: 0.9rem; margin: 0; padding-left: 1.5rem;">
+                <li>Ensure your finger is clean and dry</li>
+                <li>Place finger firmly on the scanner when prompted</li>
+                <li>Keep finger steady until capture is complete</li>
+                <li>Multiple attempts may be needed for quality capture</li>
+            </ul>
+        </div>
+
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p>Please place your finger on the scanner and wait...</p>
+        </div>
+
+        <button type="submit" class="btn" style="width: 100%; font-size: 1.1rem;" id="enrollBtn">
+            📷 Start Fingerprint Capture
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <h2 class="card-title">Enrollment Tips</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        
+        <div style="text-align: center; padding: 1rem;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🧼</div>
+            <h4 style="color: #4f46e5; margin-bottom: 0.5rem;">Clean Fingers</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Wash and dry hands before scanning for best results</p>
+        </div>
+
+        <div style="text-align: center; padding: 1rem;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">👆</div>
+            <h4 style="color: #4f46e5; margin-bottom: 0.5rem;">Proper Placement</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Center finger on scanner with even pressure</p>
+        </div>
+
+        <div style="text-align: center; padding: 1rem;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">⏱️</div>
+            <h4 style="color: #4f46e5; margin-bottom: 0.5rem;">Stay Still</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Keep finger motionless during capture process</p>
+        </div>
+
+        <div style="text-align: center; padding: 1rem;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔄</div>
+            <h4 style="color: #4f46e5; margin-bottom: 0.5rem;">Retry if Needed</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Multiple attempts ensure high quality capture</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const enrollBtn = document.getElementById('enrollBtn');
+
+    form.addEventListener('submit', function(e) {
+        // Show loading state
+        loadingIndicator.classList.add('show');
+        enrollBtn.disabled = true;
+        enrollBtn.textContent = 'Capturing fingerprint...';
+        
+        // Add timeout warning after 10 seconds
+        setTimeout(() => {
+            if (loadingIndicator.classList.contains('show')) {
+                const warning = document.createElement('p');
+                warning.style.color = '#f59e0b';
+                warning.style.marginTop = '1rem';
+                warning.textContent = 'Taking longer than expected. Please ensure finger is properly placed on scanner.';
+                loadingIndicator.appendChild(warning);
+            }
+        }, 10000);
+    });
+
+    // Reset form if there's an error
+    window.addEventListener('pageshow', function(e) {
+        if (e.persisted) {
+            loadingIndicator.classList.remove('show');
+            enrollBtn.disabled = false;
+            enrollBtn.textContent = '📷 Start Fingerprint Capture';
+        }
+    });
+});
+</script>
+{% endblock %}

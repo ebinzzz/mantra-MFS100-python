@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Fingerprint Management System{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="card-title">Enrolled Users</h1>
+    
+    {% if fingerprints %}
+        <div style="margin-bottom: 2rem; text-align: center;">
+            <span style="background: rgba(16, 185, 129, 0.1); color: #065f46; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600;">
+                {{ fingerprints|length }} fingerprints enrolled
+            </span>
+        </div>
+
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Finger Position</th>
+                        <th>Quality Score</th>
+                        <th>Enrolled Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_id, finger_position, quality, created_at in fingerprints %}
+                    <tr>
+                        <td>
+                            <strong style="color: #4f46e5;">{{ user_id }}</strong>
+                        </td>
+                        <td>
+                            <span style="text-transform: capitalize; background: rgba(79, 70, 229, 0.1); color: #4f46e5; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.875rem;">
+                                {{ finger_position }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if quality %}
+                                {% if quality >= 80 %}
+                                    <span style="color: #10b981; font-weight: 600;">{{ quality }}</span>
+                                {% elif quality >= 60 %}
+                                    <span style="color: #f59e0b; font-weight: 600;">{{ quality }}</span>
+                                {% else %}
+                                    <span style="color: #ef4444; font-weight: 600;">{{ quality }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span style="color: #6b7280;">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: #6b7280;">
+                            {% if created_at %}
+                                {{ created_at[:19].replace('T', ' ') }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button onclick="deleteFingerprint('{{ user_id }}', '{{ finger_position }}')" 
+                                    class="btn btn-danger" 
+                                    style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem; color: #6b7280;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">👤</div>
+            <h3 style="margin-bottom: 1rem;">No Users Enrolled</h3>
+            <p style="margin-bottom: 2rem;">Start by enrolling your first user to see them listed here.</p>
+            <a href="/enroll" class="btn">Enroll First User</a>
+        </div>
+    {% endif %}
+</div>
+
+{% if fingerprints %}
+<div class="card">
+    <h2 class="card-title">Bulk Actions</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        
+        <div style="text-align: center; padding: 1.5rem; background: rgba(239, 68, 68, 0.05); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.2);">
+            <div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div>
+            <h4 style="color: #dc2626; margin-bottom: 1rem;">Delete All Users</h4>
+            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                Permanently remove all enrolled fingerprints from the system
+            </p>
+            <button onclick="deleteAllUsers()" class="btn btn-danger">
+                Delete All
+            </button>
+        </div>
+
+        <div style="text-align: center; padding: 1.5rem; background: rgba(59, 130, 246, 0.05); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
+            <div style="font-size: 2rem; margin-bottom: 1rem;">📊</div>
+            <h4 style="color: #2563eb; margin-bottom: 1rem;">Export Data</h4>
+            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                Download user enrollment data for backup or analysis
+            </p>
+            <button onclick="exportData()" class="btn" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+                Export CSV
+            </button>
+        </div>
+
+        <div style="text-align: center; padding: 1.5rem; background: rgba(16, 185, 129, 0.05); border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
+            <div style="font-size: 2rem; margin-bottom: 1rem;">📈</div>
+            <h4 style="color: #059669; margin-bottom: 1rem;">View Analytics</h4>
+            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                Check enrollment statistics and verification logs
+            </p>
+            <a href="/statistics" class="btn" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+                View Stats
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="card" style="max-width: 400px; margin: 0;">
+        <h3 style="color: #dc2626; margin-bottom: 1rem;">Confirm Deletion</h3>
+        <p id="deleteMessage" style="margin-bottom: 1.5rem; color: #6b7280;"></p>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button onclick="closeDeleteModal()" class="btn" style="background: #6b7280;">
+                Cancel
+            </button>
+            <form id="deleteForm" method="POST" action="/delete_user" style="display: inline;">
+                <input type="hidden" id="deleteUserId" name="user_id">
+                <input type="hidden" id="deleteFingerPosition" name="finger_position">
+                <button type="submit" class="btn btn-danger">
+                    Confirm Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteFingerprint(userId, fingerPosition) {
+    document.getElementById('deleteUserId').value = userId;
+    document.getElementById('deleteFingerPosition').value = fingerPosition;
+    document.getElementById('deleteMessage').textContent = 
+        `Are you sure you want to delete the ${fingerPosition} fingerprint for user "${userId}"? This action cannot be undone.`;
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function deleteAllUsers() {
+    if (confirm('Are you sure you want to delete ALL enrolled fingerprints? This action cannot be undone and will remove all users from the system.')) {
+        // Create a form to delete all users
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/delete_user';
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'delete_all';
+        input.value = 'true';
+        
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+
+function exportData() {
+    // Create CSV content
+    const table = document.querySelector('.table');
+    if (!table) return;
+    
+    let csv = 'User ID,Finger Position,Quality Score,Enrolled Date\n';
+    
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const userId = cells[0].textContent.trim();
+        const fingerPos = cells[1].textContent.trim();
+        const quality = cells[2].textContent.trim();
+        const date = cells[3].textContent.trim();
+        
+        csv += `"${userId}","${fingerPos}","${quality}","${date}"\n`;
+    });
+    
+    // Download CSV
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fingerprint_users_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+// Close modal when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+</script>
+{% endblock %}

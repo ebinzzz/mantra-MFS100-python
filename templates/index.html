@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Fingerprint Management System{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="card-title">Advanced Fingerprint Management System</h1>
+    
+    <div style="text-align: center; margin: 2rem 0;">
+        <div class="connection-status" id="connectionStatus">
+            Checking connection...
+        </div>
+    </div>
+
+    <!-- Device Initialization Section -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <h2 class="card-title">Device Management</h2>
+        
+        <!-- Device Selection and Configuration -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div>
+                <label style="font-weight: bold; color: #4f46e5; margin-bottom: 0.5rem; display: block;">Connected Device:</label>
+                <select id="cmbConnectedDvc" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                    <option value="-1">Select Device</option>
+                </select>
+            </div>
+            
+            <div>
+                <label style="font-weight: bold; color: #4f46e5; margin-bottom: 0.5rem; display: block;">Quality (1-100):</label>
+                <input type="text" id="txtQuality" value="60" maxlength="3" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+            </div>
+            
+            <div>
+                <label style="font-weight: bold; color: #4f46e5; margin-bottom: 0.5rem; display: block;">Timeout (seconds):</label>
+                <input type="text" id="txtTimeout" value="10" maxlength="5" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label style="font-weight: bold; color: #4f46e5; margin-bottom: 0.5rem; display: block;">Client Key:</label>
+            <textarea id="txtClientKey" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; height: 60px; resize: vertical;" placeholder="Enter client key for device authentication"></textarea>
+        </div>
+
+        <!-- Device Control Buttons -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <button id="btnGetConnectedDevice" onclick="getConnectedDevices()" class="btn" style="background: #059669; border: none;">
+                🔍 Scan Devices
+            </button>
+            <button id="btnInitDevice" onclick="initializeDevice()" class="btn" style="background: #0891b2; border: none;">
+                🔧 Initialize Device
+            </button>
+            <button id="btnCheckDevice" onclick="checkDevice()" class="btn" style="background: #7c3aed; border: none;">
+                ✓ Check Status
+            </button>
+            <button id="btnTestCapture" onclick="testCapture()" class="btn" style="background: #dc2626; border: none;">
+                📷 Test Capture
+            </button>
+        </div>
+
+        <!-- Device Information Display -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div>
+                <h3 style="color: #4f46e5; margin-bottom: 1rem;">Device Information</h3>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="margin-bottom: 0.5rem;"><strong>Serial No:</strong> <span id="deviceSerial">-</span></div>
+                    <div style="margin-bottom: 0.5rem;"><strong>Make:</strong> <span id="deviceMake">-</span></div>
+                    <div style="margin-bottom: 0.5rem;"><strong>Model:</strong> <span id="deviceModel">-</span></div>
+                    <div style="margin-bottom: 0.5rem;"><strong>Width:</strong> <span id="deviceWidth">-</span></div>
+                    <div><strong>Height:</strong> <span id="deviceHeight">-</span></div>
+                </div>
+            </div>
+            
+            <div>
+                <h3 style="color: #4f46e5; margin-bottom: 1rem;">Captured Image</h3>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center; min-height: 150px;">
+                    <img id="capturedImage" style="max-width: 100%; max-height: 150px; border: 1px solid #d1d5db; border-radius: 4px;" alt="No image captured" />
+                    <div id="imageInfo" style="margin-top: 0.5rem; font-size: 12px; color: #6b7280;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Display -->
+        <div style="margin-top: 1.5rem;">
+            <label style="font-weight: bold; color: #4f46e5; margin-bottom: 0.5rem; display: block;">Status:</label>
+            <div id="statusDisplay" style="padding: 8px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; font-size: 12px; min-height: 40px;">
+                Ready to initialize device...
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2rem;">
+        
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">👤</div>
+            <h3 style="color: #4f46e5; margin-bottom: 1rem;">Enroll Users</h3>
+            <p style="color: #6b7280; margin-bottom: 1.5rem;">Register new fingerprints for user authentication</p>
+            <a href="/enroll" class="btn">Start Enrollment</a>
+        </div>
+
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+            <h3 style="color: #4f46e5; margin-bottom: 1rem;">Verify Identity</h3>
+            <p style="color: #6b7280; margin-bottom: 1.5rem;">Authenticate users with fingerprint scanning</p>
+            <a href="/verify" class="btn">Start Verification</a>
+        </div>
+
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">👥</div>
+            <h3 style="color: #4f46e5; margin-bottom: 1rem;">Manage Users</h3>
+            <p style="color: #6b7280; margin-bottom: 1.5rem;">View and manage enrolled user accounts</p>
+            <a href="/users" class="btn">View Users</a>
+        </div>
+
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+            <h3 style="color: #4f46e5; margin-bottom: 1rem;">View Statistics</h3>
+            <p style="color: #6b7280; margin-bottom: 1.5rem;">Monitor system performance and usage</p>
+            <a href="/statistics" class="btn">View Stats</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="card-title">System Features</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        
+        <div style="padding: 1rem; border-left: 4px solid #4f46e5;">
+            <h4 style="color: #4f46e5; margin-bottom: 0.5rem;">Advanced Matching</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Multi-algorithm fingerprint matching with ridge pattern analysis</p>
+        </div>
+
+        <div style="padding: 1rem; border-left: 4px solid #10b981;">
+            <h4 style="color: #10b981; margin-bottom: 0.5rem;">Quality Assessment</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Real-time image quality analysis and enhancement</p>
+        </div>
+
+        <div style="padding: 1rem; border-left: 4px solid #f59e0b;">
+            <h4 style="color: #f59e0b; margin-bottom: 0.5rem;">Secure Storage</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Encrypted fingerprint templates with SQLite database</p>
+        </div>
+
+        <div style="padding: 1rem; border-left: 4px solid #ef4444;">
+            <h4 style="color: #ef4444; margin-bottom: 0.5rem;">Audit Logging</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Complete verification history and access logs</p>
+        </div>
+
+        <div style="padding: 1rem; border-left: 4px solid #8b5cf6;">
+            <h4 style="color: #8b5cf6; margin-bottom: 0.5rem;">Device Management</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Automatic device detection and initialization with MFScan integration</p>
+        </div>
+
+        <div style="padding: 1rem; border-left: 4px solid #06b6d4;">
+            <h4 style="color: #06b6d4; margin-bottom: 0.5rem;">Live Testing</h4>
+            <p style="color: #6b7280; font-size: 0.9rem;">Real-time fingerprint capture testing and quality assessment</p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="card-title">Quick Setup Guide</h2>
+    <div style="display: grid; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(79, 70, 229, 0.05); border-radius: 10px;">
+            <div style="background: #4f46e5; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
+            <div>
+                <strong>Connect Scanner:</strong> Ensure your fingerprint scanner is connected and MFScan service is running on port 8034
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(16, 185, 129, 0.05); border-radius: 10px;">
+            <div style="background: #10b981; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
+            <div>
+                <strong>Scan & Initialize:</strong> Use the "Scan Devices" button to detect connected scanners, then initialize the selected device
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(245, 158, 11, 0.05); border-radius: 10px;">
+            <div style="background: #f59e0b; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
+            <div>
+                <strong>Test & Enroll:</strong> Test the capture functionality, then navigate to enrollment to register users
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(239, 68, 68, 0.05); border-radius: 10px;">
+            <div style="background: #ef4444; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">4</div>
+            <div>
+                <strong>Start Verifying:</strong> Use the Verify section to authenticate users and grant access
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/jquery-1.8.2.js') }}"></script>
+<script>
+// MFScan Integration
+var uri = "https://localhost:8034/mfscan/";
+var isDeviceInitialized = false;
+
+// Utility Functions
+function updateStatus(message, type = 'info') {
+    const statusDiv = document.getElementById('statusDisplay');
+    const timestamp = new Date().toLocaleTimeString();
+    const color = type === 'error' ? '#dc2626' : type === 'success' ? '#059669' : '#6b7280';
+    statusDiv.innerHTML = `<span style="color: ${color};">[${timestamp}] ${message}</span>`;
+}
+
+function disableButtons(disabled) {
+    const buttons = ['btnGetConnectedDevice', 'btnInitDevice', 'btnCheckDevice', 'btnTestCapture'];
+    buttons.forEach(id => {
+        document.getElementById(id).disabled = disabled;
+    });
+}
+
+function clearDeviceInfo() {
+    document.getElementById('deviceSerial').textContent = '-';
+    document.getElementById('deviceMake').textContent = '-';
+    document.getElementById('deviceModel').textContent = '-';
+    document.getElementById('deviceWidth').textContent = '-';
+    document.getElementById('deviceHeight').textContent = '-';
+}
+
+// MFScan API Functions
+function postMFScanClient(method, jsonData) {
+    return new Promise((resolve) => {
+        $.ajax({
+            type: "POST",
+            url: uri + method,
+            contentType: "application/json; charset=utf-8",
+            data: jsonData || '',
+            dataType: "json",
+            crossDomain: true,
+            timeout: 10000,
+            success: function(data) {
+                resolve({ success: true, data: data });
+            },
+            error: function(jqXHR) {
+                let errorMsg = "Service Unavailable";
+                if (jqXHR.status === 404) errorMsg = "Requested page not found";
+                else if (jqXHR.status === 500) errorMsg = "Internal Server Error";
+                resolve({ success: false, error: errorMsg });
+            }
+        });
+    });
+}
+
+// Device Management Functions
+async function getConnectedDevices() {
+    updateStatus("Scanning for connected devices...");
+    disableButtons(true);
+    
+    try {
+        const result = await postMFScanClient("connecteddevicelist");
+        
+        if (result.success && result.data.ErrorCode == "0") {
+            const devices = result.data.ErrorDescription;
+            const deviceSelect = document.getElementById('cmbConnectedDvc');
+            deviceSelect.innerHTML = '<option value="-1">Select Device</option>';
+            
+            if (devices && devices.includes(":")) {
+                const deviceList = devices.split(":")[1].split(",");
+                deviceList.forEach((device, index) => {
+                    if (device.trim()) {
+                        deviceSelect.innerHTML += `<option value="${index}">${device.trim()}</option>`;
+                    }
+                });
+                updateStatus(`Found ${deviceList.length} device(s)`, 'success');
+            } else {
+                updateStatus("No devices found", 'error');
+            }
+        } else {
+            updateStatus(`Error: ${result.data ? result.data.ErrorDescription : result.error}`, 'error');
+        }
+    } catch (error) {
+        updateStatus(`Connection error: ${error.message}`, 'error');
+    }
+    
+    disableButtons(false);
+}
+
+async function initializeDevice() {
+    const deviceSelect = document.getElementById('cmbConnectedDvc');
+    const clientKey = document.getElementById('txtClientKey').value;
+    
+    if (deviceSelect.value === "-1") {
+        updateStatus("Please select a device first", 'error');
+        return;
+    }
+    
+    const deviceName = deviceSelect.options[deviceSelect.selectedIndex].text;
+    updateStatus(`Initializing ${deviceName}...`);
+    disableButtons(true);
+    
+    try {
+        const requestData = JSON.stringify({
+            "ConnectedDvc": deviceName,
+            "ClientKey": clientKey
+        });
+        
+        const result = await postMFScanClient("initdevice", requestData);
+        
+        if (result.success && result.data.ErrorCode == "0") {
+            isDeviceInitialized = true;
+            updateStatus("Device initialized successfully", 'success');
+            await getDeviceInfo();
+        } else {
+            isDeviceInitialized = false;
+            updateStatus(`Initialization failed: ${result.data ? result.data.ErrorDescription : result.error}`, 'error');
+        }
+    } catch (error) {
+        updateStatus(`Initialization error: ${error.message}`, 'error');
+    }
+    
+    disableButtons(false);
+}
+
+async function getDeviceInfo() {
+    const deviceSelect = document.getElementById('cmbConnectedDvc');
+    const clientKey = document.getElementById('txtClientKey').value;
+    const deviceName = deviceSelect.options[deviceSelect.selectedIndex].text;
+    
+    try {
+        const requestData = JSON.stringify({
+            "ConnectedDvc": deviceName,
+            "ClientKey": clientKey
+        });
+        
+        const result = await postMFScanClient("info", requestData);
+        
+        if (result.success && result.data.ErrorCode == "0") {
+            const info = result.data.DeviceInfo;
+            document.getElementById('deviceSerial').textContent = info.SerialNo || '-';
+            document.getElementById('deviceMake').textContent = info.Make || '-';
+            document.getElementById('deviceModel').textContent = info.Model || '-';
+            document.getElementById('deviceWidth').textContent = info.Width || '-';
+            document.getElementById('deviceHeight').textContent = info.Height || '-';
+        }
+    } catch (error) {
+        console.log("Could not retrieve device info:", error);
+    }
+}
+
+async function checkDevice() {
+    const deviceSelect = document.getElementById('cmbConnectedDvc');
+    
+    if (deviceSelect.value === "-1") {
+        updateStatus("Please select a device first", 'error');
+        return;
+    }
+    
+    const deviceName = deviceSelect.options[deviceSelect.selectedIndex].text;
+    updateStatus(`Checking ${deviceName}...`);
+    
+    try {
+        const requestData = JSON.stringify({"ConnectedDvc": deviceName});
+        const result = await postMFScanClient("checkdevice", requestData);
+        
+        if (result.success && result.data.ErrorCode == "0") {
+            updateStatus("Device is connected and responding", 'success');
+        } else {
+            updateStatus(`Device check failed: ${result.data ? result.data.ErrorDescription : result.error}`, 'error');
+        }
+    } catch (error) {
+        updateStatus(`Check error: ${error.message}`, 'error');
+    }
+}
+
+async function testCapture() {
+    if (!isDeviceInitialized) {
+        updateStatus("Please initialize the device first", 'error');
+        return;
+    }
+    
+    const quality = document.getElementById('txtQuality').value;
+    const timeout = document.getElementById('txtTimeout').value;
+    
+    if (!quality || quality < 1 || quality > 100) {
+        updateStatus("Please enter a valid quality value (1-100)", 'error');
+        return;
+    }
+    
+    if (!timeout || timeout < 10) {
+        updateStatus("Please enter a valid timeout value (≥10 seconds)", 'error');
+        return;
+    }
+    
+    updateStatus("Capturing fingerprint... Please place finger on scanner");
+    disableButtons(true);
+    
+    try {
+        const requestData = JSON.stringify({
+            "Quality": quality,
+            "TimeOut": timeout
+        });
+        
+        const result = await postMFScanClient("capture", requestData);
+        
+        if (result.success && result.data.ErrorCode == "0") {
+            const imageData = result.data.BitmapData;
+            const imageElement = document.getElementById('capturedImage');
+            const infoElement = document.getElementById('imageInfo');
+            
+            imageElement.src = "data:image/bmp;base64," + imageData;
+            infoElement.textContent = `Quality: ${result.data.Quality}, NFIQ: ${result.data.Nfiq}`;
+            
+            updateStatus("Fingerprint captured successfully", 'success');
+        } else {
+            updateStatus(`Capture failed: ${result.data ? result.data.ErrorDescription : result.error}`, 'error');
+        }
+    } catch (error) {
+        updateStatus(`Capture error: ${error.message}`, 'error');
+    }
+    
+    disableButtons(false);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateStatus("Ready - Click 'Scan Devices' to begin");
+    
+    // Auto-scan for devices on load
+    setTimeout(getConnectedDevices, 1000);
+    
+    // Update connection status
+    document.getElementById('connectionStatus').textContent = "MFScan Service Connected";
+    document.getElementById('connectionStatus').style.color = "#059669";
+});
+</script>
+{% endblock %}

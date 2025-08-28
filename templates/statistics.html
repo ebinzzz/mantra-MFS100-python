@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - Fingerprint Management System{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="card-title">System Statistics</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-number">{{ stats.user_count }}</span>
+            <span class="stat-label">Unique Users</span>
+        </div>
+        
+        <div class="stat-card">
+            <span class="stat-number">{{ stats.fp_count }}</span>
+            <span class="stat-label">Total Fingerprints</span>
+        </div>
+        
+        <div class="stat-card">
+            <span class="stat-number">{{ stats.success_count }}</span>
+            <span class="stat-label">Successful Verifications</span>
+        </div>
+        
+        <div class="stat-card">
+            <span class="stat-number">{{ stats.failed_count }}</span>
+            <span class="stat-label">Failed Verifications</span>
+        </div>
+        
+        <div class="stat-card">
+            <span class="stat-number">{{ stats.success_count + stats.failed_count }}</span>
+            <span class="stat-label">Total Attempts</span>
+        </div>
+        
+        <div class="stat-card">
+            <span class="stat-number" style="color: {% if stats.success_rate >= 80 %}#10b981{% elif stats.success_rate >= 60 %}#f59e0b{% else %}#ef4444{% endif %};">
+                {{ "%.1f"|format(stats.success_rate) }}%
+            </span>
+            <span class="stat-label">Success Rate</span>
+        </div>
+    </div>
+</div>
+
+{% if stats.recent_verifications %}
+<div class="card">
+    <h2 class="card-title">Recent Verification Attempts</h2>
+    
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User ID</th>
+                    <th>Finger Position</th>
+                    <th>Status</th>
+                    <th>Similarity Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user_id, verification_time, status, similarity_score, finger_position in stats.recent_verifications %}
+                <tr>
+                    <td style="color: #6b7280;">
+                        {% if verification_time %}
+                            {{ verification_time[:19].replace('T', ' ') }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong style="color: #4f46e5;">{{ user_id or 'Unknown' }}</strong>
+                    </td>
+                    <td>
+                        {% if finger_position %}
+                            <span style="text-transform: capitalize; background: rgba(79, 70, 229, 0.1); color: #4f46e5; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.875rem;">
+                                {{ finger_position }}
+                            </span>
+                        {% else %}
+                            <span style="color: #6b7280;">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if status == 'SUCCESS' %}
+                            <span class="status-badge status-success">Success</span>
+                        {% else %}
+                            <span class="status-badge status-failed">Failed</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if similarity_score %}
+                            <span style="font-weight: 600; color: {% if similarity_score >= 0.55 %}#10b981{% elif similarity_score >= 0.3 %}#f59e0b{% else %}#ef4444{% endif %};">
+                                {{ "%.3f"|format(similarity_score) }}
+                            </span>
+                        {% else %}
+                            <span style="color: #6b7280;">N/A</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <h2 class="card-title">Performance Metrics</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        
+        <div style="background: rgba(79, 70, 229, 0.05); border-radius: 15px; padding: 1.5rem; border: 1px solid rgba(79, 70, 229, 0.2);">
+            <h4 style="color: #4f46e5; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.5rem;">📊</span>
+                Verification Accuracy
+            </h4>
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: #6b7280;">Success Rate</span>
+                    <span style="font-weight: 600; color: #4f46e5;">{{ "%.1f"|format(stats.success_rate) }}%</span>
+                </div>
+                <div style="background: #e5e7eb; border-radius: 10px; height: 8px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, #4f46e5, #10b981); height: 100%; width: {{ stats.success_rate }}%; border-radius: 10px; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+            <p style="color: #6b7280; font-size: 0.9rem;">
+                {% if stats.success_rate >= 90 %}
+                    Excellent performance! The system is highly accurate.
+                {% elif stats.success_rate >= 70 %}
+                    Good performance with room for improvement.
+                {% else %}
+                    Consider reviewing enrollment quality and scanner setup.
+                {% endif %}
+            </p>
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.05); border-radius: 15px; padding: 1.5rem; border: 1px solid rgba(16, 185, 129, 0.2);">
+            <h4 style="color: #10b981; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.5rem;">👥</span>
+                User Coverage
+            </h4>
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: #6b7280;">Avg Fingerprints per User</span>
+                    <span style="font-weight: 600; color: #10b981;">
+                        {{ "%.1f"|format(stats.fp_count / stats.user_count if stats.user_count > 0 else 0) }}
+                    </span>
+                </div>
+                <div style="background: #e5e7eb; border-radius: 10px; height: 8px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: {{ (stats.fp_count / stats.user_count * 20) if stats.user_count > 0 else 0 }}%; border-radius: 10px; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+            <p style="color: #6b7280; font-size: 0.9rem;">
+                {% set avg_fp = (stats.fp_count / stats.user_count) if stats.user_count > 0 else 0 %}
+                {% if avg_fp >= 2 %}
+                    Great coverage! Multiple fingerprints per user improve reliability.
+                {% elif avg_fp >= 1.5 %}
+                    Good coverage. Consider enrolling additional fingers for backup.
+                {% else %}
+                    Consider enrolling multiple fingers per user for better reliability.
+                {% endif %}
+            </p>
+        </div>
+
+        <div style="background: rgba(245, 158, 11, 0.05); border-radius: 15px; padding: 1.5rem; border: 1px solid rgba(245, 158, 11, 0.2);">
+            <h4 style="color: #f59e0b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.5rem;">⚡</span>
+                System Activity
+            </h4>
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: #6b7280;">Total Attempts</span>
+                    <span style="font-weight: 600; color: #f59e0b;">{{ stats.success_count + stats.failed_count }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: #6b7280; font-size: 0.9rem;">Recent Activity</span>
+                    <span style="color: #f59e0b; font-size: 0.9rem;">{{ stats.recent_verifications|length }} recent</span>
+                </div>
+            </div>
+            <p style="color: #6b7280; font-size: 0.9rem;">
+                {% if (stats.success_count + stats.failed_count) > 50 %}
+                    High system usage detected. Monitor for performance.
+                {% elif (stats.success_count + stats.failed_count) > 10 %}
+                    Regular system activity. Good adoption rate.
+                {% else %}
+                    Low usage. Consider user training or system promotion.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="card-title">System Health</h2>
+    
+    <div style="display: grid; gap: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: rgba(16, 185, 129, 0.05); border-radius: 10px; border-left: 4px solid #10b981;">
+            <div>
+                <h4 style="color: #065f46; margin-bottom: 0.25rem;">Database Connection</h4>
+                <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">SQLite database is operational</p>
+            </div>
+            <span style="background: #10b981; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.875rem;">
+                Online
+            </span>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: rgba(79, 70, 229, 0.05); border-radius: 10px; border-left: 4px solid #4f46e5;">
+            <div>
+                <h4 style="color: #3730a3; margin-bottom: 0.25rem;">Scanner Status</h4>
+                <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">Check connection to MFScan service</p>
+            </div>
+            <div class="connection-status" style="margin: 0;">
+                Checking...
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: rgba(245, 158, 11, 0.05); border-radius: 10px; border-left: 4px solid #f59e0b;">
+            <div>
+                <h4 style="color: #92400e; margin-bottom: 0.25rem;">Data Integrity</h4>
+                <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">All fingerprint data is secure and accessible</p>
+            </div>
+            <span style="background: #f59e0b; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.875rem;">
+                Verified
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="card-title">Quick Actions</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <a href="/enroll" class="btn" style="text-align: center; padding: 1rem;">
+            Add New User
+        </a>
+        <a href="/verify" class="btn" style="text-align: center; padding: 1rem;">
+            Verify Identity
+        </a>
+        <a href="/users" class="btn" style="text-align: center; padding: 1rem;">
+            Manage Users
+        </a>
+        <button onclick="refreshStats()" class="btn" style="text-align: center; padding: 1rem;">
+            Refresh Data
+        </button>
+    </div>
+</div>
+
+<script>
+function refreshStats() {
+    // Show loading state
+    const button = event.target;
+    const originalText = button.textContent;
+    button.textContent = 'Refreshing...';
+    button.disabled = true;
+    
+    // Reload the page after a short delay
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}
+
+// Auto-refresh stats every 5 minutes
+setInterval(() => {
+    window.location.reload();
+}, 300000);
+</script>
+{% endblock %}
