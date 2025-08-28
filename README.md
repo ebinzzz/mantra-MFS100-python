@@ -37,7 +37,7 @@ requests==2.31.0
 
 1. **Clone or download the system files**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/ebinzzz/mantra-MFS100-python.git
    cd mantra-MFS100-python
    ```
 
