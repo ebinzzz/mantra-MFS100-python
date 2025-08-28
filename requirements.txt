@@ -1,4 +1,9 @@
+pip>=25.2
+setuptools>=68.0.0
+wheel
+build
+
 flask==2.3.3
 opencv-python==4.8.1.78
-numpy==1.24.3
+numpy>=1.26.0
 requests==2.31.0
